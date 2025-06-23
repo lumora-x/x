@@ -1,173 +1,550 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LumoraX | Online Store</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LumoraX - Neon Merch Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      background: #f5f7fa;
-      color: #111;
-    }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-    header {
-      background-color: #111;
-      color: #fff;
-      padding: 1.5rem 2rem;
-      text-align: center;
-      font-size: 2rem;
-      letter-spacing: 1px;
-      font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
 
-    .hero {
-      background: linear-gradient(90deg, #111 30%, #00b894 100%);
-      color: white;
-      text-align: center;
-      padding: 2.5rem 1rem;
-      font-size: 2rem;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px #00000066;
-    }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
 
-    .container {
-      padding: 2rem;
-      display: grid;
-      gap: 2rem;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 15px #00ffff,
+                0 0 20px #00ffff;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
 
-    .product-card {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: 0.3s ease;
-    }
+        @keyframes logoGlow {
+            from { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff; }
+            to { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+        }
 
-    .product-card:hover {
-      transform: scale(1.03);
-    }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
 
-    .product-card img {
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-    }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
 
-    .product-info {
-      padding: 1rem;
-    }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            transition: width 0.3s ease;
+        }
 
-    .product-info h3 {
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
-    }
+        .nav-links a:hover {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
 
-    .price {
-      font-weight: bold;
-      color: #00b894;
-    }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
 
-    .btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.6rem 1rem;
-      background: #00b894;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
 
-    .btn:hover {
-      background: #01996d;
-    }
+        .mobile-menu span {
+            width: 25px;
+            height: 3px;
+            background: #00ffff;
+            margin: 3px 0;
+            transition: 0.3s;
+            box-shadow: 0 0 5px #00ffff;
+        }
 
-    footer {
-      background-color: #111;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-      margin-top: 2rem;
-    }
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+        }
 
-    #cart-count {
-      background: #ff4757;
-      color: white;
-      border-radius: 50%;
-      padding: 0.2rem 0.6rem;
-      font-size: 0.8rem;
-      margin-left: 0.5rem;
-    }
-  </style>
+        .hero-content h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: heroGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes heroGlow {
+            from { filter: drop-shadow(0 0 10px #ff00ff); }
+            to { filter: drop-shadow(0 0 20px #00ffff); }
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #cccccc;
+            max-width: 600px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.7);
+        }
+
+        /* Products Section */
+        .products {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 0, 255, 0.1), rgba(0, 255, 255, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .product-card:hover::before {
+            opacity: 1;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image::after {
+            content: '👕';
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+        }
+
+        .product-card:nth-child(2) .product-image::after { content: '🧢'; }
+        .product-card:nth-child(3) .product-image::after { content: '👟'; }
+        .product-card:nth-child(4) .product-image::after { content: '🎒'; }
+        .product-card:nth-child(5) .product-image::after { content: '⌚'; }
+        .product-card:nth-child(6) .product-image::after { content: '🕶️'; }
+
+        .product-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #00ffff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .product-description {
+            color: #cccccc;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .buy-button {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .buy-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.8);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-icon {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #000;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1) rotate(360deg);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+        }
+
+        .footer-text {
+            color: #cccccc;
+            font-size: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: flex;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-content p {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .social-icons {
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .products {
+                padding: 3rem 1rem;
+            }
+
+            .product-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scroll animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(5) { animation-delay: 0.5s; }
+        .product-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
 </head>
 <body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">LumoraX</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#shop">Shop</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
 
-  <header>
-    LumoraX Store 🛍️
-  </header>
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Welcome to LumoraX</h1>
+            <p>Experience the future of fashion with our exclusive neon-inspired merchandise collection. Glow different, stand out, be luminous.</p>
+            <a href="#shop" class="cta-button">Shop Now</a>
+        </div>
+    </section>
 
-  <section class="hero">
-    Style Meets Code | Powered by Ambition 💡
-  </section>
+    <section class="products" id="shop">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Neon Glow Tee</h3>
+                <p class="product-price">$29.99</p>
+                <p class="product-description">Premium cotton t-shirt with glow-in-the-dark neon design. Perfect for night events and parties.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Cyber Cap</h3>
+                <p class="product-price">$24.99</p>
+                <p class="product-description">Futuristic snapback with LED strip accent. Adjustable and waterproof design.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Lumina Sneakers</h3>
+                <p class="product-price">$89.99</p>
+                <p class="product-description">High-tech sneakers with reactive LED soles. Comfort meets innovation.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Holographic Backpack</h3>
+                <p class="product-price">$59.99</p>
+                <p class="product-description">Spacious backpack with holographic finish and multiple compartments.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Neon Pulse Watch</h3>
+                <p class="product-price">$149.99</p>
+                <p class="product-description">Smart watch with customizable neon display and fitness tracking.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+            <div class="product-card">
+                <div class="product-image"></div>
+                <h3 class="product-title">Cyber Shades</h3>
+                <p class="product-price">$39.99</p>
+                <p class="product-description">Futuristic sunglasses with tinted lenses and LED accent lighting.</p>
+                <button class="buy-button">Add to Cart</button>
+            </div>
+        </div>
+    </section>
 
-  <section class="container">
-    <!-- Product 1 -->
-    <div class="product-card">
-      <img src="https://images.unsplash.com/photo-1593032465171-8eec47939660" alt="T-shirt">
-      <div class="product-info">
-        <h3>Minimalist Tee</h3>
-        <p class="price">₹499</p>
-        <button class="btn" onclick="addToCart('Minimalist Tee', 499)">Add to Cart</button>
-      </div>
-    </div>
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon">IG</a>
+                <a href="#" class="social-icon">YT</a>
+            </div>
+            <p class="footer-text">© 2025 LumoraX. All rights reserved. | Illuminate your style.</p>
+        </div>
+    </footer>
 
-    <!-- Product 2 -->
-    <div class="product-card">
-      <img src="https://images.unsplash.com/photo-1585386959984-a4155220fa4c" alt="Hoodie">
-      <div class="product-info">
-        <h3>Cool Hoodie</h3>
-        <p class="price">₹799</p>
-        <button class="btn" onclick="addToCart('Cool Hoodie', 799)">Add to Cart</button>
-      </div>
-    </div>
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
 
-    <!-- Product 3 -->
-    <div class="product-card">
-      <img src="https://images.unsplash.com/photo-1602810317792-c4fa34d02f3a" alt="Mug">
-      <div class="product-info">
-        <h3>Swag Mug</h3>
-        <p class="price">₹299</p>
-        <button class="btn" onclick="addToCart('Swag Mug', 299)">Add to Cart</button>
-      </div>
-    </div>
-  </section>
+        // Mobile menu toggle (basic functionality)
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const navLinks = document.querySelector('.nav-links');
+        
+        mobileMenu.addEventListener('click', () => {
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
 
-  <footer>
-    &copy; 2025 LumoraX. All Rights Reserved | <span id="cart">Cart: <span id="cart-count">0</span></span>
-  </footer>
-
-  <script>
-    let cart = [];
-
-    function addToCart(productName, price) {
-      cart.push({ name: productName, price: price });
-      document.getElementById("cart-count").innerText = cart.length;
-      alert(`${productName} added to cart!`);
-      console.log("Cart:", cart); // for dev use
-    }
-  </script>
-
+        // Add to cart button functionality
+        document.querySelectorAll('.buy-button').forEach(button => {
+            button.addEventListener('click', function() {
+                this.innerHTML = 'Added! ✓';
+                this.style.background = 'linear-gradient(45deg, #00ff00, #00ffff)';
+                setTimeout(() => {
+                    this.innerHTML = 'Add to Cart';
+                    this.style.background = 'linear-gradient(45deg, #ff00ff, #00ffff)';
+                }, 2000);
+            });
+        });
+    </script>
 </body>
 </html>
