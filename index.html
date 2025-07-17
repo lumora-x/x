@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Chemistry Practical – pH Testing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -13,57 +13,88 @@
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #e1f5fe);
-      height: 100vh;
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      color: white;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .element {
+      position: absolute;
+      font-size: 32px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+      user-select: none;
     }
 
     .container {
-      background: white;
-      padding: 40px 60px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 60px;
       border-radius: 20px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     h1 {
-      font-size: 28px;
-      color: #00796b;
-      margin-bottom: 20px;
+      font-size: 30px;
+      margin-bottom: 30px;
+      color: #00e5ff;
+      text-shadow: 0 0 5px #00e5ff, 0 0 10px #00e5ff;
     }
 
     .btn {
       display: inline-block;
-      padding: 15px 35px;
+      margin: 10px;
+      padding: 18px 40px;
       font-size: 18px;
+      font-weight: bold;
       color: white;
-      background: linear-gradient(45deg, #00bcd4, #009688);
+      background: linear-gradient(45deg, #00e5ff, #00c853);
       border: none;
       border-radius: 12px;
       cursor: pointer;
       text-decoration: none;
-      transition: 0.3s ease;
-      font-weight: 600;
-      box-shadow: 0 8px 16px rgba(0, 188, 212, 0.4);
+      box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5);
+      transition: 0.4s ease;
     }
 
     .btn:hover {
-      background: linear-gradient(45deg, #009688, #00796b);
+      background: linear-gradient(45deg, #00c853, #00e5ff);
       transform: scale(1.05);
-    }
-
-    .btn:active {
-      transform: scale(0.98);
+      box-shadow: 0 8px 30px rgba(0, 229, 255, 0.8);
     }
   </style>
 </head>
 <body>
 
+  <!-- Periodic Table Borders -->
+  <div class="element" style="top: 20px; left: 30px;">H</div>
+  <div class="element" style="top: 20px; right: 30px;">He</div>
+  <div class="element" style="bottom: 20px; left: 40px;">Na</div>
+  <div class="element" style="bottom: 20px; right: 40px;">Cl</div>
+  <div class="element" style="top: 45%; left: -10px;">Fe</div>
+  <div class="element" style="top: 45%; right: -10px;">Cu</div>
+
+  <!-- Main Container -->
   <div class="container">
-    <h1>Chemistry Practical<br>pH Testing Experiment</h1>
-    <a href="https://www.canva.com/design/DAGtBvFx7wQ/tUVHomm8pFVWc9jdCvHnBg/edit?utm_content=DAGtBvFx7wQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton" class="btn" target="_blank">🔬 View Practical File</a>
+    <h1>🧪 Chemistry Practical File<br>pH Testing Experiment</h1>
+
+    <!-- Button 1: View Practical PDF -->
+    <a href="https://www.canva.com/design/DAGtBvFx7wQ/tUVHomm8pFVWc9jdCvHnBg/edit" class="btn" target="_blank">
+      📂 View Practical File (PDF)
+    </a>
+
+    <!-- Button 2: Download Slideshow PPSX -->
+    <a href="https://drive.google.com/uc?export=download&id=11CJmROBVq0Qp_kmiRubkjwGDxz4X4piA" class="btn" download>
+      💾 Download Slideshow (PPSX)
+    </a>
   </div>
 
 </body>
