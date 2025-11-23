@@ -1,0 +1,153 @@
+.post {
+  background-color: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 3px;
+  margin-bottom: 24px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.post-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #262626;
+}
+
+.post-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.post-more {
+  color: #262626;
+}
+
+.post-image-container {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.post-actions-left {
+  display: flex;
+  gap: 16px;
+}
+
+.post-action-btn {
+  color: #262626;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.post-content {
+  padding: 0 16px;
+}
+
+.post-likes {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #262626;
+}
+
+.post-caption {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #262626;
+}
+
+.post-caption .post-username {
+  margin-right: 4px;
+}
+
+.post-view-comments {
+  color: #8e8e8e;
+  font-size: 14px;
+  margin-bottom: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.post-comments {
+  margin-bottom: 8px;
+}
+
+.post-comment {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #262626;
+}
+
+.comment-username {
+  font-weight: 600;
+  margin-right: 4px;
+  color: #262626;
+}
+
+.post-time {
+  color: #8e8e8e;
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.post-comment-form {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #efefef;
+  padding: 12px 16px;
+}
+
+.post-comment-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #262626;
+}
+
+.post-comment-submit {
+  color: #0095f6;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+
+.post-comment-submit:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+}
+

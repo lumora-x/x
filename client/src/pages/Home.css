@@ -1,0 +1,30 @@
+.home-container {
+  max-width: 975px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.home-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.loading,
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
+.empty-state h2 {
+  color: #262626;
+  margin-bottom: 8px;
+}
+

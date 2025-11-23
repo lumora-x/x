@@ -1,0 +1,18 @@
+.post-detail-container {
+  max-width: 975px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.post-detail-content {
+  display: flex;
+  justify-content: center;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
