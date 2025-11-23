@@ -39,20 +39,6 @@
             line-height: 1.6;
         }
 
-        /* --- Cursor Trail Effect --- */
-        .cursor-trail {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            pointer-events: none;
-            z-index: 9998;
-            opacity: 0.6;
-            transition: transform 0.1s ease;
-            box-shadow: 0 0 10px var(--primary-color);
-        }
-
         /* --- Animated Background with Floating Shapes --- */
         .background-container {
             position: fixed;
@@ -1240,37 +1226,6 @@
             }
         `;
         document.head.appendChild(style);
-
-        // Cursor trail effect
-        let cursorTrails = [];
-        const maxTrails = 20;
-
-        document.addEventListener('mousemove', (e) => {
-            const trail = document.createElement('div');
-            trail.className = 'cursor-trail';
-            trail.style.left = e.clientX + 'px';
-            trail.style.top = e.clientY + 'px';
-            document.body.appendChild(trail);
-
-            cursorTrails.push(trail);
-
-            if (cursorTrails.length > maxTrails) {
-                const oldTrail = cursorTrails.shift();
-                oldTrail.style.opacity = '0';
-                oldTrail.style.transform = 'scale(0)';
-                setTimeout(() => oldTrail.remove(), 300);
-            }
-
-            setTimeout(() => {
-                trail.style.opacity = '0';
-                trail.style.transform = 'scale(0)';
-                setTimeout(() => {
-                    if (trail.parentNode) {
-                        trail.remove();
-                    }
-                }, 300);
-            }, 500);
-        });
 
         // Initialize hero section as visible and hide loader
         window.addEventListener('load', () => {
