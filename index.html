@@ -52,6 +52,17 @@
             animation: gradientAnimation 20s ease infinite;
         }
 
+        /* --- NEW: Interactive Cursor Canvas (sits above the gradient, below all content) --- */
+        #interactive-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
         @keyframes gradientAnimation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -901,6 +912,9 @@
         </div>
     </div>
 
+    <!-- NEW: cursor-interactive background layer -->
+    <canvas id="interactive-bg" aria-hidden="true"></canvas>
+
     <section class="section hero">
         <div class="hero-text-container">
              <h2>PORTFOLIO</h2>
@@ -1057,6 +1071,7 @@
              </div>
             <div class="cert-card glass-card">
                 <img src="certificate9.jpg">
+            </div>
         </div>
     </section>
 
@@ -1075,7 +1090,7 @@
           <strong>WARNING:</strong> Unauthorized copying, reproduction, or redistribution of any content, code, or media from this website will trigger <u>IMMEDIATE LEGAL ACTION</u>.<br>
           Strict remedies under the Indian Copyright Act, 1957 include asset seizure, crippling financial penalties, and imprisonment up to 3 years.<br>
           Every infringement will be <span style="color:#fff;background:#c00;padding:2px 6px;border-radius:3px;">prosecuted to the maximum extent allowed by law</span>, WITHOUT EXCEPTION.<br>
-          <strong>IF YOU COPY, YOU PAY.</strong> Criminal complaints WILL be filed and no prior warning will be given.<br
+          <strong>IF YOU COPY, YOU PAY.</strong> Criminal complaints WILL be filed and no prior warning will be given.<br>
           <span style="color:#ff8080;">For permissions, email: [prakashram36615@gmail.com]. ANY unauthorized use WILL result in prosecution, asset freeze, and maximum penalties under Indian law.</span>
         </p>
       </footer>
@@ -1227,6 +1242,411 @@
                 }
             }, 500);
         });
+    </script>
+
+    <!-- =====================================================================
+         NEW: "Astra" interactive background - a depth-layered starfield that
+         reacts to the cursor (gravity, constellation links, comet trail,
+         shooting stars, click supernova). Self-contained; safe to remove.
+         ===================================================================== -->
+    <script>
+    (function () {
+        const canvas = document.getElementById('interactive-bg');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        // ---- Tweak these to change the feel ----
+        const CONFIG = {
+            starDensity: 5200,            // px² per star (lower = more stars)
+            maxStars: 260,
+            parallax: 40,                 // max px the star layers shift with the cursor
+            scrollDrift: 0.08,            // how much the layers drift while scrolling
+            pullRadius: 220,              // cursor gravity radius
+            constellationStars: 7,        // nearest stars joined to the cursor
+            linkDistance: 120,            // max gap between linked constellation stars
+            trailLength: 28,              // comet trail length
+            shootingStarGap: [3500, 8500],// ms between shooting stars
+            burstCount: 24                // sparks on click / tap
+        };
+
+        const PALE = '214,230,255';
+        const CYAN = '0,194,255';
+        const PINK = '249,37,97';
+        const TAU = Math.PI * 2;
+        const STEP = 1000 / 60;           // physics runs at a fixed 60 Hz on every screen
+
+        // three depth planes: far, middle, near
+        const LAYERS = [
+            { depth: 0.25, size: [0.5, 0.95], alpha: [0.25, 0.55], share: 0.50 },
+            { depth: 0.55, size: [0.8, 1.4],  alpha: [0.40, 0.75], share: 0.32 },
+            { depth: 1.00, size: [1.2, 2.1],  alpha: [0.60, 1.00], share: 0.18 }
+        ];
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        let w = 0, h = 0, dpr = 1, prevW = 0, prevH = 0;
+        let stars = [], trail = [], sparks = [], rings = [], meteors = [];
+        let flash = null;
+        let nextMeteor = 1800;
+        let scrollOff = 0;
+        const off = { x: 0, y: 0 };
+        const mouse = { x: -9999, y: -9999, sx: -9999, sy: -9999, lx: -9999, ly: -9999, power: 0, target: 0, seen: false };
+
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const wrap = (v, m) => ((v % m) + m) % m;
+        const lerp = (a, b, k) => a + (b - a) * k;
+
+        function pickLayer() {
+            let r = Math.random();
+            for (const l of LAYERS) { if ((r -= l.share) < 0) return l; }
+            return LAYERS[LAYERS.length - 1];
+        }
+
+        function makeStar() {
+            const layer = pickLayer();
+            const c = Math.random();
+            const rgb = c < 0.08 ? PINK : c < 0.30 ? CYAN : PALE;
+            const pad = CONFIG.parallax + 10;
+            return {
+                hx: rand(-pad, w + pad), hy: rand(0, h),
+                dx: 0, dy: 0, vx: 0, vy: 0,
+                depth: layer.depth,
+                r: rand(layer.size[0], layer.size[1]),
+                a: rand(layer.alpha[0], layer.alpha[1]),
+                fill: `rgb(${rgb})`,
+                tw: rand(0.6, 2.2), ph: rand(0, TAU),
+                x: 0, y: 0, near: 0
+            };
+        }
+
+        function fit() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            if (prevW && prevH) {
+                const rx = w / prevW, ry = h / prevH;
+                for (const s of stars) { s.hx *= rx; s.hy *= ry; }
+            }
+            prevW = w; prevH = h;
+
+            const want = clamp(Math.round((w * h) / CONFIG.starDensity), 70, CONFIG.maxStars);
+            while (stars.length < want) stars.push(makeStar());
+            while (stars.length > want) stars.splice((Math.random() * stars.length) | 0, 1);
+            stars.sort((a, b) => a.depth - b.depth);   // draw far -> near
+        }
+
+        // ---- Input ----
+        function setPointer(x, y) {
+            mouse.x = x; mouse.y = y;
+            if (!mouse.seen) {
+                mouse.sx = mouse.lx = x;
+                mouse.sy = mouse.ly = y;
+                mouse.seen = true;
+            }
+            mouse.target = 1;
+        }
+
+        function supernova(x, y) {
+            for (let i = 0; i < CONFIG.burstCount; i++) {
+                const a = (i / CONFIG.burstCount) * TAU + rand(-0.12, 0.12);
+                const sp = rand(1.5, 5);
+                sparks.push({
+                    x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+                    life: 1, decay: rand(0.014, 0.03),
+                    rgb: Math.random() < 0.4 ? PINK : Math.random() < 0.5 ? CYAN : PALE
+                });
+            }
+            rings.push({ x, y, r: 4, life: 1, speed: 5.5 });
+            rings.push({ x, y, r: 2, life: 0.8, speed: 3 });
+            flash = { x, y, life: 1 };
+
+            // shockwave: shove nearby stars outward, near layers most
+            const R = 280;
+            for (const s of stars) {
+                const dx = s.x - x, dy = s.y - y;
+                const d = Math.hypot(dx, dy);
+                if (d < R && d > 0.01) {
+                    const f = 1 - d / R;
+                    s.vx += (dx / d) * f * 9 * s.depth;
+                    s.vy += (dy / d) * f * 9 * s.depth;
+                }
+            }
+        }
+
+        if (!reduceMotion) {
+            window.addEventListener('mousemove', e => setPointer(e.clientX, e.clientY), { passive: true });
+            document.documentElement.addEventListener('mouseleave', () => { mouse.target = 0; });
+            window.addEventListener('blur', () => { mouse.target = 0; });
+            window.addEventListener('touchstart', e => {
+                const t = e.touches[0]; if (t) setPointer(t.clientX, t.clientY);
+            }, { passive: true });
+            window.addEventListener('touchmove', e => {
+                const t = e.touches[0]; if (t) setPointer(t.clientX, t.clientY);
+            }, { passive: true });
+            window.addEventListener('touchend', () => { mouse.target = 0; }, { passive: true });
+            window.addEventListener('click', e => supernova(e.clientX, e.clientY));
+        }
+
+        // ---- Physics (fixed 60 Hz step) ----
+        function update(now) {
+            mouse.power += (mouse.target - mouse.power) * 0.08;
+            mouse.sx += (mouse.x - mouse.sx) * 0.18;
+            mouse.sy += (mouse.y - mouse.sy) * 0.18;
+            mouse.lx += (mouse.x - mouse.lx) * 0.05;
+            mouse.ly += (mouse.y - mouse.ly) * 0.05;
+
+            // depth parallax: layers slide against the cursor, near ones the most
+            const tx = mouse.target ? -((mouse.x / w) - 0.5) * CONFIG.parallax * 2 : 0;
+            const ty = mouse.target ? -((mouse.y / h) - 0.5) * CONFIG.parallax * 2 : 0;
+            off.x += (tx - off.x) * 0.05;
+            off.y += (ty - off.y) * 0.05;
+            scrollOff += ((reduceMotion ? 0 : window.scrollY * CONFIG.scrollDrift) - scrollOff) * 0.1;
+
+            const R = CONFIG.pullRadius;
+            const pulling = mouse.power > 0.3;
+
+            for (const s of stars) {
+                const bx = s.hx + off.x * s.depth;
+                const by = wrap(s.hy - scrollOff * s.depth + off.y * s.depth, h);
+
+                s.near = 0;
+                if (pulling) {
+                    const gx = mouse.x - (bx + s.dx);
+                    const gy = mouse.y - (by + s.dy);
+                    const d = Math.hypot(gx, gy);
+                    if (d < R && d > 1) {
+                        const f = 1 - d / R;
+                        s.near = f;
+                        const soften = d < 46 ? d / 46 : 1;   // stars orbit near the cursor instead of snapping to it
+                        const pull = f * f * 1.1 * s.depth * soften;
+                        s.vx += (gx / d) * pull;
+                        s.vy += (gy / d) * pull;
+                    }
+                }
+
+                s.vx += -s.dx * 0.03;
+                s.vy += -s.dy * 0.03;
+                s.vx *= 0.9;
+                s.vy *= 0.9;
+                s.dx += s.vx;
+                s.dy += s.vy;
+                s.x = bx + s.dx;
+                s.y = by + s.dy;
+            }
+
+            // comet trail
+            if (mouse.power > 0.05 && mouse.seen) trail.push({ x: mouse.sx, y: mouse.sy });
+            if (trail.length > CONFIG.trailLength || (mouse.power <= 0.05 && trail.length)) trail.shift();
+
+            // click effects
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const s = sparks[i];
+                s.x += s.vx; s.y += s.vy;
+                s.vx *= 0.96; s.vy *= 0.96;
+                s.life -= s.decay;
+                if (s.life <= 0) sparks.splice(i, 1);
+            }
+            for (let i = rings.length - 1; i >= 0; i--) {
+                const r = rings[i];
+                r.r += r.speed;
+                r.life -= 0.028;
+                if (r.life <= 0) rings.splice(i, 1);
+            }
+            if (flash) { flash.life -= 0.06; if (flash.life <= 0) flash = null; }
+
+            // shooting stars
+            if (!reduceMotion && now >= nextMeteor) {
+                const len = rand(90, 170);
+                meteors.push({
+                    x: rand(w * 0.3, w * 1.05), y: rand(-30, h * 0.35),
+                    dx: -0.82, dy: 0.57,
+                    speed: rand(11, 17), len, life: 1, decay: rand(0.012, 0.02)
+                });
+                nextMeteor = now + rand(CONFIG.shootingStarGap[0], CONFIG.shootingStarGap[1]);
+            }
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                m.x += m.dx * m.speed;
+                m.y += m.dy * m.speed;
+                m.life -= m.decay;
+                if (m.life <= 0 || m.x < -m.len || m.y > h + m.len) meteors.splice(i, 1);
+            }
+        }
+
+        // ---- Drawing ----
+        function draw(t) {
+            ctx.clearRect(0, 0, w, h);
+            const p = mouse.power;
+
+            // soft light that follows the cursor (a slow violet halo + a quicker cyan core)
+            if (p > 0.01) {
+                let g = ctx.createRadialGradient(mouse.lx, mouse.ly, 0, mouse.lx, mouse.ly, 380);
+                g.addColorStop(0, `rgba(${PINK},${0.07 * p})`);
+                g.addColorStop(1, `rgba(${PINK},0)`);
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, w, h);
+
+                g = ctx.createRadialGradient(mouse.sx, mouse.sy, 0, mouse.sx, mouse.sy, 260);
+                g.addColorStop(0, `rgba(${CYAN},${0.15 * p})`);
+                g.addColorStop(1, `rgba(${CYAN},0)`);
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, w, h);
+            }
+
+            // shooting stars
+            ctx.lineCap = 'round';
+            for (const m of meteors) {
+                const tx = m.x - m.dx * m.len, ty = m.y - m.dy * m.len;
+                const g = ctx.createLinearGradient(m.x, m.y, tx, ty);
+                g.addColorStop(0, `rgba(255,255,255,${0.9 * m.life})`);
+                g.addColorStop(0.3, `rgba(${CYAN},${0.5 * m.life})`);
+                g.addColorStop(1, `rgba(${CYAN},0)`);
+                ctx.strokeStyle = g;
+                ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(tx, ty);
+                ctx.stroke();
+            }
+
+            // stars (far -> near)
+            for (const s of stars) {
+                const tw = reduceMotion ? 0.85 : 0.65 + 0.35 * Math.sin(t * s.tw + s.ph);
+                const a = clamp(s.a * tw + s.near * 0.5, 0, 1);
+                const r = s.r * (1 + s.near * 0.8);
+                ctx.fillStyle = s.fill;
+                if (s.near > 0.4) {
+                    ctx.globalAlpha = a * 0.18;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, r * 3.2, 0, TAU);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = a;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, r, 0, TAU);
+                ctx.fill();
+                if (s.near > 0.25 && s.depth >= 0.55) {          // little glint on stars close to the cursor
+                    const len = r * 4 * s.near + r;
+                    ctx.strokeStyle = s.fill;
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - len, s.y); ctx.lineTo(s.x + len, s.y);
+                    ctx.moveTo(s.x, s.y - len); ctx.lineTo(s.x, s.y + len);
+                    ctx.stroke();
+                }
+            }
+            ctx.globalAlpha = 1;
+
+            // constellation: the nearest bright stars join up around the cursor
+            if (p > 0.3) {
+                const Rc = CONFIG.pullRadius + 20;
+                const cand = [];
+                for (const s of stars) {
+                    if (s.depth < 0.5) continue;
+                    const d = Math.hypot(s.x - mouse.sx, s.y - mouse.sy);
+                    if (d < Rc) cand.push({ s, d, f: 1 - d / Rc });
+                }
+                cand.sort((a, b) => a.d - b.d);
+                cand.length = Math.min(cand.length, CONFIG.constellationStars);
+
+                ctx.lineWidth = 1;
+                for (const c of cand) {
+                    ctx.strokeStyle = `rgba(${CYAN},${c.f * 0.6 * p})`;
+                    ctx.beginPath();
+                    ctx.moveTo(mouse.sx, mouse.sy);
+                    ctx.lineTo(c.s.x, c.s.y);
+                    ctx.stroke();
+                }
+                ctx.lineWidth = 0.8;
+                for (let i = 0; i < cand.length; i++) {
+                    for (let j = i + 1; j < cand.length; j++) {
+                        const dd = Math.hypot(cand[i].s.x - cand[j].s.x, cand[i].s.y - cand[j].s.y);
+                        if (dd < CONFIG.linkDistance) {
+                            const a = (1 - dd / CONFIG.linkDistance) * 0.4 * Math.min(cand[i].f, cand[j].f) * 2 * p;
+                            ctx.strokeStyle = `rgba(${PALE},${Math.min(a, 0.45)})`;
+                            ctx.beginPath();
+                            ctx.moveTo(cand[i].s.x, cand[i].s.y);
+                            ctx.lineTo(cand[j].s.x, cand[j].s.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            // comet trail (pink tail -> cyan head)
+            for (let i = 1; i < trail.length; i++) {
+                const k = i / trail.length;
+                ctx.strokeStyle = `rgba(${Math.round(lerp(249, 0, k))},${Math.round(lerp(37, 194, k))},${Math.round(lerp(97, 255, k))},${k * 0.55})`;
+                ctx.lineWidth = 0.6 + k * 2.6;
+                ctx.beginPath();
+                ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+                ctx.lineTo(trail[i].x, trail[i].y);
+                ctx.stroke();
+            }
+
+            // click: flash, rings, sparks
+            if (flash) {
+                const g = ctx.createRadialGradient(flash.x, flash.y, 0, flash.x, flash.y, 170);
+                g.addColorStop(0, `rgba(255,255,255,${0.35 * flash.life})`);
+                g.addColorStop(0.4, `rgba(${CYAN},${0.18 * flash.life})`);
+                g.addColorStop(1, `rgba(${CYAN},0)`);
+                ctx.fillStyle = g;
+                ctx.fillRect(flash.x - 170, flash.y - 170, 340, 340);
+            }
+            for (const r of rings) {
+                ctx.strokeStyle = `rgba(${CYAN},${r.life * 0.6})`;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, r.r, 0, TAU);
+                ctx.stroke();
+            }
+            for (const s of sparks) {
+                ctx.fillStyle = `rgba(${s.rgb},${s.life})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 1.6 * s.life + 0.4, 0, TAU);
+                ctx.fill();
+            }
+
+            // bright core at the cursor
+            if (p > 0.01) {
+                ctx.fillStyle = `rgba(${CYAN},${0.25 * p})`;
+                ctx.beginPath();
+                ctx.arc(mouse.sx, mouse.sy, 10, 0, TAU);
+                ctx.fill();
+                ctx.fillStyle = `rgba(255,255,255,${0.9 * p})`;
+                ctx.beginPath();
+                ctx.arc(mouse.sx, mouse.sy, 2.6, 0, TAU);
+                ctx.fill();
+            }
+        }
+
+        // ---- Main loop ----
+        let last = 0, acc = 0;
+        function frame(now) {
+            if (!last) last = now;
+            acc += Math.min(now - last, 100);
+            last = now;
+            let n = 0;
+            while (acc >= STEP && n < 5) { update(now); acc -= STEP; n++; }
+            if (n === 5) acc = 0;
+            draw(now / 1000);
+            requestAnimationFrame(frame);
+        }
+
+        fit();
+        if (reduceMotion) {
+            update(0); draw(0);
+            window.addEventListener('resize', () => { fit(); update(0); draw(0); });
+        } else {
+            window.addEventListener('resize', fit);
+            requestAnimationFrame(frame);
+        }
+    })();
     </script>
 
 </body>
